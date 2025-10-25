@@ -1,8 +1,6 @@
-.env
-agent-keys.txt
+
 build
 node_modules
-src/test.ts
 
 .vscode
 .cursorignore
