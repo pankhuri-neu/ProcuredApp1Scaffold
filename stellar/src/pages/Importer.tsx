@@ -1,20 +1,10 @@
 /**
  * Enhanced Importer Dashboard Component - Stellar Version
- * 
- * Two tabs:
- * 1. My Purchases - Shows purchased instruments
- * 2. Create Trade - Create new trades in Escrow
- * 
- * Features:
- * - vLEI endorsed Purchase Order support with document storage
- * - Complete trade creation workflow
- * - Asset management and tracking
- * - Document upload and management
- * - Product type selection
- * - Comprehensive UI with all original features
+ * (Updated to import custom CSS and include semantic class names)
  */
 import React, { useState, useEffect } from 'react'
 import { Layout } from "@stellar/design-system"
+import './Importer.css' // <-- new CSS import (place file next to this TSX)
 
 // ==================== INTERFACES ====================
 
@@ -87,13 +77,16 @@ const formatCurrency = (amount: number): string => {
   }).format(amount)
 }
 
-const formatXLM = (stroops: number): string => {
-  return (stroops / 10000000).toFixed(7) + ' XLM'
-}
-
 const usdToXLM = (usd: number, xlmPrice: number = 0.12): number => {
   return usd / xlmPrice
 }
+
+// Reusable button class constants to keep styling consistent across the page
+// NOTE: we keep tailwind utility classes while adding semantic class names
+const BTN_PRIMARY = 'btn btn--primary rounded-lg font-semibold text-white transition-colors inline-flex items-center justify-center'
+const BTN_PURPLE_LG = BTN_PRIMARY + ' btn--purple-lg px-6 py-4 bg-[#644fc1] hover:bg-[#523fb0]'
+const BTN_PURPLE = BTN_PRIMARY + ' btn--purple px-5 py-3 bg-[#644fc1] hover:bg-[#523fb0] text-sm'
+const BTN_HIGHLIGHT = 'btn--highlight font-mono bg-[#f3f0ff] text-[#644fc1] px-2 py-0.5 rounded-md font-semibold ml-3 text-sm'
 
 // Mock vLEI service
 const mockVLEIService = {
@@ -124,7 +117,6 @@ export default function Importer() {
   // Purchases state
   const [purchasedInstruments, setPurchasedInstruments] = useState<TradeInstrument[]>([])
   const [loading, setLoading] = useState(true)
-  const [accountAssets, setAccountAssets] = useState<any[]>([])
 
   // Create trade state
   const [formData, setFormData] = useState({
@@ -163,7 +155,6 @@ export default function Importer() {
   }, [])
 
   useEffect(() => {
-    // Update description based on product type
     const selectedProduct = PRODUCT_TYPES.find(p => p.value === formData.productType)
     if (selectedProduct && !formData.cargoDescription.includes('Custom')) {
       setFormData(prev => ({
@@ -391,17 +382,13 @@ export default function Importer() {
     setTimeout(() => setSuccess(''), 3000)
   }
 
-  const showError = (message: string) => {
-    setError(message)
-    setTimeout(() => setError(''), 5000)
-  }
-
   // ==================== RENDER ====================
 
   return (
     <Layout.Content>
       <Layout.Inset>
-        <div className="min-h-screen bg-gray-50">
+        {/* Add semantic container class so custom CSS can target everything */}
+        <div className="importer-page min-h-screen bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 py-6">
 
             {/* Header */}
@@ -443,8 +430,10 @@ export default function Importer() {
             <div className="bg-white rounded-lg shadow-sm mb-6">
               <nav className="flex space-x-8 px-6 border-b border-gray-200">
                 <button
+                  role="tab"
+                  aria-selected={currentTab === 'create-trade'}
                   onClick={() => setCurrentTab('create-trade')}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${currentTab === 'create-trade'
+                  className={`tab-btn py-4 px-1 border-b-2 font-medium text-sm transition-colors ${currentTab === 'create-trade'
                       ? 'border-green-500 text-green-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                     }`}
@@ -452,8 +441,10 @@ export default function Importer() {
                   ➕ Create Trade
                 </button>
                 <button
+                  role="tab"
+                  aria-selected={currentTab === 'purchases'}
                   onClick={() => setCurrentTab('purchases')}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${currentTab === 'purchases'
+                  className={`tab-btn py-4 px-1 border-b-2 font-medium text-sm transition-colors ${currentTab === 'purchases'
                       ? 'border-green-500 text-green-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                     }`}
@@ -465,53 +456,66 @@ export default function Importer() {
 
             {/* MY PURCHASES TAB */}
             {currentTab === 'purchases' && (
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="form-card">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    📦 My Purchased Instruments
-                  </h2>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                      📦 My Purchased Instruments
+                    </h2>
+                    <p className="text-sm text-gray-500">View and manage your trade assets on Stellar</p>
+                  </div>
                   <button
                     onClick={loadMockData}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    className="btn btn-purple"
                   >
-                    🔄 Refresh
+                    🔄
+                    <span className="ml-2">Refresh</span>
+                    <span className="btn-highlight">New</span>
                   </button>
                 </div>
 
                 {/* Opt-in Section */}
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4 mb-6">
-                  <h3 className="text-lg font-semibold text-purple-900 mb-3">
-                    🔓 Opt-in to Asset
-                  </h3>
-                  <p className="text-sm text-purple-700 mb-3">
-                    Before receiving trade instruments, you must opt-in to the asset on Stellar
-                  </p>
+                <div className="form-section" style={{ background: 'linear-gradient(135deg, rgba(100,79,193,0.05) 0%, rgba(236,72,153,0.05) 100%)', border: '1px solid rgba(100,79,193,0.15)', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
+                  <div className="section-title" style={{ marginBottom: '16px', paddingBottom: '0', border: 'none' }}>
+                    <div className="icon">🔓</div>
+                    <div>
+                      <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#644fc1', margin: 0 }}>
+                        Opt-in to Asset
+                      </h3>
+                      <p className="muted" style={{ marginTop: '4px' }}>
+                        Before receiving trade instruments, you must opt-in to the asset on Stellar
+                      </p>
+                    </div>
+                  </div>
 
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={optInAssetId}
-                      onChange={(e) => setOptInAssetId(e.target.value)}
-                      placeholder="Enter Asset ID (e.g., 2001)"
-                      className="flex-1 px-4 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
+                  <div className="flex gap-3">
+                    <div className="input-group flex-1">
+                      <input
+                        type="text"
+                        value={optInAssetId}
+                        onChange={(e) => setOptInAssetId(e.target.value)}
+                        placeholder="Enter Asset ID (e.g., 2001)"
+                      />
+                    </div>
                     <button
                       onClick={handleOptInToAsset}
                       disabled={isOptingIn || !optInAssetId}
-                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+                      className="btn btn-primary"
                     >
-                      {isOptingIn ? 'Opting-in...' : 'Opt-in'}
+                      🔓
+                      <span className="ml-3">{isOptingIn ? 'Opting-in...' : 'Opt-in'}</span>
+                      <span className="btn-highlight">Asset</span>
                     </button>
                   </div>
 
                   {optInSuccess && (
-                    <div className="mt-2 text-sm text-green-700 bg-green-100 border border-green-300 rounded px-3 py-2">
+                    <div className="alert alert-success" style={{ marginTop: '12px' }}>
                       {optInSuccess}
                     </div>
                   )}
 
                   {optInError && (
-                    <div className="mt-2 text-sm text-red-700 bg-red-100 border border-red-300 rounded px-3 py-2">
+                    <div className="alert alert-error" style={{ marginTop: '12px' }}>
                       {optInError}
                     </div>
                   )}
@@ -542,54 +546,62 @@ export default function Importer() {
                     {purchasedInstruments.map((instrument) => (
                       <div
                         key={instrument.assetId}
-                        className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow bg-gradient-to-r from-green-50 to-emerald-50"
+                        className="instrument-card"
                       >
-                        <div className="flex justify-between items-start mb-4">
+                        <div className="meta">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="kicker" style={{ background: 'rgba(16,185,129,0.1)', color: '#059669' }}>
                                 {instrument.status}
                               </span>
-                              <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
+                              <span className="kicker">
                                 {instrument.productType}
                               </span>
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-1">
+                            <h4 className="mb-2">
                               {instrument.cargoDescription}
-                            </h3>
-                            <p className="text-sm text-gray-600 mb-2">
-                              <strong>BL Reference:</strong> {instrument.blReference}
-                            </p>
-                            <p className="text-sm text-gray-600 mb-2">
-                              <strong>Seller:</strong> {instrument.seller || 'Unknown'}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              Created: {instrument.createdAt || 'N/A'}
-                            </p>
+                            </h4>
+                            <div className="space-y-1">
+                              <p className="small-muted">
+                                <strong style={{ color: '#644fc1' }}>BL Reference:</strong> {instrument.blReference}
+                              </p>
+                              <p className="small-muted">
+                                <strong style={{ color: '#644fc1' }}>Seller:</strong> {instrument.seller || 'Unknown'}
+                              </p>
+                              <p className="small-muted">
+                                <strong style={{ color: '#644fc1' }}>Created:</strong> {instrument.createdAt || 'N/A'}
+                              </p>
+                            </div>
                           </div>
 
                           <div className="text-right">
-                            <p className="text-3xl font-bold text-green-600 mb-1">
+                            <p style={{ fontSize: '32px', fontWeight: '800', color: '#644fc1', marginBottom: '8px', lineHeight: '1' }}>
                               {formatCurrency(instrument.cargoValue)}
                             </p>
-                            <p className="text-xs text-gray-500">
-                              Asset ID: {instrument.assetId}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              ~{formatXLM(instrument.cargoValue * 10000000)}
-                            </p>
+                            <div style={{ background: 'rgba(100,79,193,0.08)', padding: '8px 12px', borderRadius: '8px', marginTop: '8px' }}>
+                              <p className="small-muted" style={{ marginBottom: '2px' }}>
+                                <strong>Asset ID:</strong> {instrument.assetId}
+                              </p>
+                              <p className="small-muted" style={{ color: '#644fc1', fontWeight: '600' }}>
+                                ~{usdToXLM(instrument.cargoValue).toFixed(2)} XLM
+                              </p>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex gap-2 pt-4 border-t border-gray-200">
-                          <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-                            📄 View Details
+                        <div className="actions">
+                          <button className="btn btn-purple flex-1 justify-center"> 
+                            📄
+                            <span className="ml-3">View Details</span>
+                            <span className="btn-highlight">Info</span>
                           </button>
-                          <button className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
-                            📤 Transfer
+                          <button className="btn btn-ghost flex-1">
+                            📤
+                            <span className="ml-3">Transfer</span>
                           </button>
-                          <button className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
-                            🔍 View on Explorer
+                          <button className="btn btn-purple flex-1 justify-center">
+                            🔍
+                            <span className="ml-3">Explorer</span>
                           </button>
                         </div>
                       </div>
@@ -599,23 +611,25 @@ export default function Importer() {
 
                 {/* Summary Stats */}
                 {!loading && purchasedInstruments.length > 0 && (
-                  <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-blue-900 mb-4">📊 Portfolio Summary</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="summary-card" style={{ background: 'linear-gradient(135deg, rgba(100,79,193,0.05) 0%, rgba(59,130,246,0.05) 100%)', border: '1px solid rgba(100,79,193,0.12)', marginTop: '24px' }}>
+                    <h3 className="text-lg font-semibold mb-4" style={{ color: '#644fc1', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      📊 Portfolio Summary
+                    </h3>
+                    <div className="stats">
                       <div>
-                        <p className="text-sm text-blue-600 mb-1">Total Instruments</p>
-                        <p className="text-2xl font-bold text-blue-900">{purchasedInstruments.length}</p>
+                        <p className="small-muted mb-1">Total Instruments</p>
+                        <p style={{ fontSize: '28px', fontWeight: '800', color: '#644fc1' }}>{purchasedInstruments.length}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-blue-600 mb-1">Total Value</p>
-                        <p className="text-2xl font-bold text-blue-900">
+                        <p className="small-muted mb-1">Total Value</p>
+                        <p style={{ fontSize: '28px', fontWeight: '800', color: '#644fc1' }}>
                           {formatCurrency(purchasedInstruments.reduce((sum, i) => sum + i.cargoValue, 0))}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-blue-600 mb-1">Product Types</p>
-                        <p className="text-2xl font-bold text-blue-900">
-                          {new Set(purchasedInstruments.map(i => i.productType)).size}
+                        <p className="small-muted mb-1">Product Types</p>
+                        <p style={{ fontSize: '28px', fontWeight: '800', color: '#644fc1' }}>
+                          {new Set(purchasedInstruments.map(i => i.productType || 'Unknown')).size}
                         </p>
                       </div>
                     </div>
@@ -675,7 +689,7 @@ export default function Importer() {
                         type="button"
                         onClick={handleLoadSellerVLEI}
                         disabled={isLoadingSellerVLEI}
-                        className="px-4 py-2 text-sm font-medium rounded-md transition-colors bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+                        className={`${BTN_PURPLE} rounded-md disabled:opacity-50 gap-3`}
                       >
                         {isLoadingSellerVLEI ? (
                           <span className="flex items-center">
@@ -717,7 +731,7 @@ export default function Importer() {
                       type="button"
                       onClick={handleLoadImporterVLEI}
                       disabled={isLoadingImporterVLEI}
-                      className="px-4 py-2 text-sm font-medium rounded-md transition-colors bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+                        className={`${BTN_PURPLE} rounded-md disabled:opacity-50 gap-3`}
                     >
                       {isLoadingImporterVLEI ? (
                         <span className="flex items-center">
@@ -824,8 +838,8 @@ export default function Importer() {
                       </div>
                     )}
 
-                    {/* File Upload Area */}
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-500 transition-colors">
+                    {/* File Upload Area - added semantic class file-drop */}
+                    <div className="file-drop border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-500 transition-colors">
                       <input
                         type="file"
                         accept=".json"
@@ -853,7 +867,7 @@ export default function Importer() {
                         type="button"
                         onClick={handleLoadVLEIPO}
                         disabled={isLoadingVLEI}
-                        className="px-4 py-2 text-sm font-medium rounded-md transition-colors bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+                        className={`${BTN_PURPLE} rounded-md disabled:opacity-50 gap-3`}
                       >
                         {isLoadingVLEI ? (
                           <span className="flex items-center">
@@ -912,18 +926,22 @@ export default function Importer() {
                     <button
                       type="submit"
                       disabled={isSubmitting || (!formData.purchaseOrderFile && !formData.vLEIEndorsedPO)}
-                      className={`w-full py-3 px-6 rounded-lg font-medium text-white transition-colors ${isSubmitting || (!formData.purchaseOrderFile && !formData.vLEIEndorsedPO)
-                          ? 'bg-gray-400 cursor-not-allowed'
-                          : 'bg-green-600 hover:bg-green-700'
+                      className={`w-full ${isSubmitting || (!formData.purchaseOrderFile && !formData.vLEIEndorsedPO)
+                          ? 'bg-gray-400 cursor-not-allowed py-3 px-6 rounded-lg'
+                          : BTN_PURPLE_LG
                         }`}
                     >
                       {isSubmitting ? (
-                        <span className="flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                          Creating Trade on Stellar Blockchain...
+                        <span className="flex items-center justify-center gap-2">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          <span>Creating Trade on Stellar Blockchain...</span>
                         </span>
                       ) : (
-                        '🚀 Create Trade in Escrow'
+                        <>
+                          🚀
+                          <span className="ml-3">Create Trade in Escrow</span>
+                          <span className={BTN_HIGHLIGHT}>vLEI</span>
+                        </>
                       )}
                     </button>
                   </div>
